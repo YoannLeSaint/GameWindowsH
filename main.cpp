@@ -55,7 +55,10 @@ Utilisez des couleurs pour les 0 et de plus en plus chaud quand on arrive à 9
 
 using namespace std;
 
-void gotoxy(int x, int y) {
+const int lenght = 50;
+const int row = 10;
+
+void gotoxy(int x, int y){
     COORD c;
     HANDLE h = GetStdHandle(STD_OUTPUT_HANDLE);
     c.X = x;
@@ -63,30 +66,34 @@ void gotoxy(int x, int y) {
     SetConsoleCursorPosition(h, c);
 }
 
-// int game_max_score(int tab[]) {
-//     int totalScore = 0;
-
-//     for (int i : tab) {
-//         totalScore += tab[i];
-//     }
-// }
-
-void init(int *tab[], int lenght, int row){
-    default_random_engine gen(time(0));
-
+void displayStart(int row, int lenght){
+    cout << setfill('#') << setw(lenght) << "" << endl;
     for (int i = 0; i < row; i++){
         for (int j = 0; j < lenght; j++){
+            cout << "~";
+        }
+        cout << endl;
+    }
+    cout << setfill('#') << setw(lenght) << "" << endl;
+}
+
+void init(int tab[][row], int lenght, int row){
+    system("cls");
+    default_random_engine gen(time(0));
+    uniform_int_distribution<int> distr1(0, lenght);
+    uniform_int_distribution<int> distr2(0, row);
+
+    for (int i = 0; i < lenght; i++){
+        for (int j = 0; j < row; j++){
             tab[i][j] = 0;
         }
     }
     for (int number = 1; number < 10; number++){
         while(true){
-            uniform_int_distribution<int> distr(0, row);
-            int randX = distr(gen);
-            uniform_int_distribution<int> distr(0, row);
-            int randY = distr(gen);
-            if (tab[randX, randY] != 0){
-                *tab[randX, randY] = number;
+            int randX = distr1(gen);
+            int randY = distr2(gen);
+            if (tab[randX][randY] == 0){
+                tab[randX][randY] = number;
                 break;
             }
         }
@@ -104,18 +111,75 @@ void start(int time, int lenght = 50){
     this_thread::sleep_for(chrono::milliseconds(time));
 }
 
-int main(void) {
+void end_game(int scoreJ, int scoreIA){
+    system("cls");
+    cout << setfill('#') << setw(lenght) << "" << endl;
+    cout << "\n\n\n\n\n" << endl;
+    cout << setfill(' ') << setw((lenght-8)/2) << ""  << "End game" << endl;
+    cout << setfill(' ') << setw((lenght-1)/2) << "Joueur " << scoreJ << " - " << scoreIA << " IA" << endl;
+    cout << "\n\n\n\n" << endl;
+    cout << setfill('#') << setw(lenght) << "" << endl;
 
-    const int lenght = 50;
-    const int row = 10;
+    this_thread::sleep_for(chrono::milliseconds(5000));
+}
+
+void game(int tab[][row]){
+    default_random_engine gen(time(0));
+    uniform_int_distribution<int> distr3(0, lenght);
+    uniform_int_distribution<int> distr4(0, row-1);
+    int scoreJ = 0;
+    int scoreIA = 0;
+    int x, y;
+    int xIA, yIA;
+    cout << "Joueur Humain Position x, y :";
+    while (scoreJ < 24 && scoreIA < 24){
+        // human play
+        gotoxy(30, row+2);
+        cout << "              ";
+        gotoxy(30, row+2);
+        scanf("%d %d", &x, &y);
+        gotoxy(x, y+1);
+        cout << tab[x][y];
+        scoreJ += tab[x][y];
+
+        // IA play
+        xIA = distr3(gen);
+        yIA = distr4(gen);
+        gotoxy(xIA, yIA+1);
+        cout << tab[xIA][yIA];
+        scoreIA += tab[xIA][yIA];
+        this_thread::sleep_for(chrono::milliseconds(500));
+
+        //afficher score (scoreJ, scoreIA)
+        gotoxy(52, 3);
+        cout << "Score Joueur : " << scoreJ;
+        gotoxy(52, 4);
+        cout << "Score IA     : " << scoreIA;
+
+        gotoxy(52, 6);
+        cout << "                                ";
+        gotoxy(52, 6);
+        cout << "Joueur - x:" << x << " y:" << y ;
+        gotoxy(52, 7);
+        cout << "                                ";
+        gotoxy(52, 7);
+        cout << "IA     - x:" << xIA << " y:" << yIA ;
+
+    }
+    end_game(scoreJ, scoreIA);
+}
+
+int main(void) {
+    system("cls");
     int start_time = 2000;
-    int tab[row][lenght];
+    //int **tab;
+    int tab[lenght][row];
 
     // MENU
     start(start_time);
-    init(*tab[], lenght, row);
-    
-    
+    init(tab, lenght, row);
+    displayStart(row, lenght);
+    game(tab);
 
 
 
